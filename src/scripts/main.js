@@ -235,6 +235,12 @@ function render() {
     }, 0);
     return netWorth + savings + investFV - debtGrowth;
   }
+  document.getElementById('sum-1year').textContent = fmt(projectedAsset(1));
+  document.getElementById('sum-3year').textContent = fmt(projectedAsset(3));
+  document.getElementById('sum-5year').textContent = fmt(projectedAsset(5));
+  document.getElementById('sum-7year').textContent = fmt(projectedAsset(7));
+  document.getElementById('sum-10year').textContent = fmt(projectedAsset(10));
+
   // 투자 목록
   const investList = document.getElementById('invest-list');
   investList.innerHTML = data.investments.length === 0
