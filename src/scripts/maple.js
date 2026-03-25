@@ -12,12 +12,7 @@ async function searchCharacter() {
   if (!name) return;
 
   const resultSection = document.getElementById('result-section');
-  const errorBox = document.getElementById('error-box');
-  const charCard = document.getElementById('char-card');
-
   resultSection.classList.remove('hidden');
-  errorBox.classList.add('hidden');
-  charCard.classList.add('hidden');
   resultSection.innerHTML = '<div class="loading">검색 중...</div>';
 
   try {
