@@ -135,7 +135,6 @@ function calcTotals() {
 }
 
 // --- 렌더링 ---
-let growthChart = null;
 let investChart = null;
 
 function render() {
@@ -261,48 +260,9 @@ function render() {
       </div>`;
       }).join('');
 
-  renderCharts(netWorth, monthlySavings);
   renderInvestChart();
 }
 
-function renderCharts(netWorth, monthlySavings) {
-  // 순자산 성장 예측 (연도별, 10년)
-  const years = ['현재'];
-  const growthData = [netWorth];
-  for (let i = 1; i <= 10; i++) {
-    years.push(`${i}년 후`);
-    growthData.push(netWorth + (monthlySavings > 0 ? monthlySavings * 12 * i : 0));
-  }
-
-  if (growthChart) growthChart.destroy();
-  const growCtx = document.getElementById('growth-chart').getContext('2d');
-  growthChart = new Chart(growCtx, {
-    type: 'line',
-    data: {
-      labels: years,
-      datasets: [{
-        label: '예상 순자산',
-        data: growthData,
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99,102,241,0.1)',
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: '#6366f1',
-        pointRadius: 4,
-      }]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#8b90a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: {
-          ticks: { color: '#8b90a0', callback: v => fmtShort(v) },
-          grid: { color: 'rgba(255,255,255,0.05)' }
-        }
-      }
-    }
-  });
-}
 
 function fmtShort(v) {
   if (Math.abs(v) >= 100000000) return (v / 100000000).toFixed(1) + '억';
