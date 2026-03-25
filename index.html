@@ -92,6 +92,38 @@
         <div id="liability-list" class="item-list"></div>
       </section>
 
+      <!-- 투자 섹션 -->
+      <section class="card">
+        <h2 class="section-title">투자 계획</h2>
+        <div class="form-row">
+          <input type="text" id="invest-name" placeholder="투자명 (예: QQQ, S&P500)" />
+          <select id="invest-preset" onchange="applyPreset()">
+            <option value="">직접 입력</option>
+            <option value="15">QQQ (연 ~15%)</option>
+            <option value="10">S&P500 (연 ~10%)</option>
+            <option value="7">글로벌 ETF (연 ~7%)</option>
+            <option value="4">채권 (연 ~4%)</option>
+            <option value="2">예적금 (연 ~2%)</option>
+          </select>
+          <input type="number" id="invest-rate" placeholder="연 수익률 (%)" step="0.1" min="0" style="max-width:150px" />
+          <input type="text" id="invest-monthly" placeholder="월 투자금액" oninput="formatInput(this)" />
+          <button class="btn primary" onclick="addInvestment()">추가</button>
+        </div>
+        <div id="invest-list" class="item-list"></div>
+      </section>
+
+      <!-- 투자 성장 그래프 -->
+      <section class="card">
+        <h2 class="section-title">투자 자산 성장 예측 (연도별)</h2>
+        <div class="invest-year-btns">
+          <button class="year-btn active" onclick="setInvestYears(10, this)">10년</button>
+          <button class="year-btn" onclick="setInvestYears(20, this)">20년</button>
+          <button class="year-btn" onclick="setInvestYears(30, this)">30년</button>
+        </div>
+        <canvas id="invest-chart"></canvas>
+        <div id="invest-summary" class="invest-summary-grid"></div>
+      </section>
+
       <!-- 그래프 섹션 -->
       <section class="card charts-grid">
         <div class="chart-box">
@@ -99,7 +131,7 @@
           <canvas id="category-chart"></canvas>
         </div>
         <div class="chart-box">
-          <h2 class="section-title">순자산 증가 예측 (12개월)</h2>
+          <h2 class="section-title">순자산 증가 예측 (연도별)</h2>
           <canvas id="growth-chart"></canvas>
         </div>
       </section>

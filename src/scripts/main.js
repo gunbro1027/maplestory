@@ -9,12 +9,15 @@ function parseInput(id) {
 }
 
 // --- 데이터 로드/저장 ---
-let data = JSON.parse(localStorage.getItem('financeData') || '{"incomes":[],"assets":[],"liabilities":[]}');
+let data = JSON.parse(localStorage.getItem('financeData') || '{"incomes":[],"assets":[],"liabilities":[],"investments":[]}');
 // 구버전 데이터 마이그레이션
 if (typeof data.income === 'number') {
   data.incomes = data.income > 0 ? [{ id: Date.now(), name: '월급', amount: data.income }] : [];
   delete data.income;
 }
+if (!data.investments) data.investments = [];
+
+let investYears = 10;
 
 function save() {
   localStorage.setItem('financeData', JSON.stringify(data));
@@ -35,6 +38,45 @@ function addIncome() {
 function deleteIncome(id) {
   data.incomes = data.incomes.filter(i => i.id !== id);
   save();
+}
+
+// --- 투자 ---
+function applyPreset() {
+  const val = document.getElementById('invest-preset').value;
+  if (val) document.getElementById('invest-rate').value = val;
+}
+
+function addInvestment() {
+  const name = document.getElementById('invest-name').value.trim();
+  const rate = parseFloat(document.getElementById('invest-rate').value);
+  const monthly = parseInput('invest-monthly');
+  if (!name || !rate || !monthly) return alert('투자명, 수익률, 월 투자금액을 입력해주세요.');
+  data.investments.push({ id: Date.now(), name, rate, monthly });
+  document.getElementById('invest-name').value = '';
+  document.getElementById('invest-rate').value = '';
+  document.getElementById('invest-monthly').value = '';
+  document.getElementById('invest-preset').value = '';
+  save();
+}
+
+function deleteInvestment(id) {
+  data.investments = data.investments.filter(i => i.id !== id);
+  save();
+}
+
+function setInvestYears(y, btn) {
+  investYears = y;
+  document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// 복리 계산: 월 적립식 FV = PMT × [(1+r)^n - 1] / r
+function calcInvestFV(monthly, annualRate, years) {
+  const r = annualRate / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return monthly * n;
+  return monthly * ((Math.pow(1 + r, n) - 1) / r);
 }
 
 // --- 자산 ---
@@ -94,6 +136,7 @@ function calcTotals() {
 // --- 렌더링 ---
 let categoryChart = null;
 let growthChart = null;
+let investChart = null;
 
 function render() {
   const { totalIncome, totalAssets, totalLiabilities, monthlyPayment, monthlyInterest, netWorth, monthlySavings } = calcTotals();
@@ -172,7 +215,29 @@ function render() {
   document.getElementById('sum-1year').textContent = fmt(netWorth + (monthlySavings > 0 ? monthlySavings * 12 : 0));
   document.getElementById('sum-3year').textContent = fmt(netWorth + (monthlySavings > 0 ? monthlySavings * 36 : 0));
 
+  // 투자 목록
+  const investList = document.getElementById('invest-list');
+  investList.innerHTML = data.investments.length === 0
+    ? '<p style="color:var(--muted);font-size:0.9rem;padding:8px 0">등록된 투자가 없습니다.</p>'
+    : data.investments.map(inv => {
+        const fv10 = calcInvestFV(inv.monthly, inv.rate, 10);
+        const total10 = inv.monthly * 12 * 10;
+        return `
+      <div class="item-row">
+        <div class="item-info">
+          <div>
+            <div class="item-name">${inv.name} <span style="color:var(--accent);font-size:0.82rem">연 ${inv.rate}%</span></div>
+            <div class="item-sub">월 ${fmt(inv.monthly)} · 10년 후 예상 ${fmt(fv10)} (수익 ${fmt(fv10 - total10)})</div>
+          </div>
+        </div>
+        <div class="item-right">
+          <button class="btn icon" onclick="deleteInvestment(${inv.id})">✕</button>
+        </div>
+      </div>`;
+      }).join('');
+
   renderCharts(netWorth, monthlySavings);
+  renderInvestChart();
 }
 
 function renderCharts(netWorth, monthlySavings) {
@@ -206,12 +271,12 @@ function renderCharts(netWorth, monthlySavings) {
     }
   });
 
-  // 성장 예측 차트
-  const months = ['현재'];
+  // 순자산 성장 예측 (연도별, 10년)
+  const years = ['현재'];
   const growthData = [netWorth];
-  for (let i = 1; i <= 12; i++) {
-    months.push(`${i}개월 후`);
-    growthData.push(netWorth + (monthlySavings > 0 ? monthlySavings * i : 0));
+  for (let i = 1; i <= 10; i++) {
+    years.push(`${i}년 후`);
+    growthData.push(netWorth + (monthlySavings > 0 ? monthlySavings * 12 * i : 0));
   }
 
   if (growthChart) growthChart.destroy();
@@ -219,7 +284,7 @@ function renderCharts(netWorth, monthlySavings) {
   growthChart = new Chart(growCtx, {
     type: 'line',
     data: {
-      labels: months,
+      labels: years,
       datasets: [{
         label: '예상 순자산',
         data: growthData,
@@ -234,20 +299,79 @@ function renderCharts(netWorth, monthlySavings) {
     options: {
       plugins: { legend: { display: false } },
       scales: {
-        x: {
-          ticks: { color: '#8b90a0', maxTicksLimit: 7 },
-          grid: { color: 'rgba(255,255,255,0.05)' }
-        },
+        x: { ticks: { color: '#8b90a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
         y: {
-          ticks: {
-            color: '#8b90a0',
-            callback: v => '₩' + (v / 10000).toFixed(0) + '만'
-          },
+          ticks: { color: '#8b90a0', callback: v => fmtShort(v) },
           grid: { color: 'rgba(255,255,255,0.05)' }
         }
       }
     }
   });
+}
+
+function fmtShort(v) {
+  if (Math.abs(v) >= 100000000) return (v / 100000000).toFixed(1) + '억';
+  if (Math.abs(v) >= 10000) return (v / 10000).toFixed(0) + '만';
+  return v;
+}
+
+function renderInvestChart() {
+  const colors = ['#6366f1','#4ade80','#60a5fa','#fb923c','#f472b6','#a78bfa'];
+  const labels = ['현재'];
+  for (let i = 1; i <= investYears; i++) labels.push(`${i}년`);
+
+  const datasets = data.investments.map((inv, idx) => {
+    const d = [0];
+    for (let i = 1; i <= investYears; i++) {
+      d.push(calcInvestFV(inv.monthly, inv.rate, i));
+    }
+    return {
+      label: inv.name,
+      data: d,
+      borderColor: colors[idx % colors.length],
+      backgroundColor: colors[idx % colors.length] + '22',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+    };
+  });
+
+  if (investChart) investChart.destroy();
+  const ctx = document.getElementById('invest-chart').getContext('2d');
+  investChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      plugins: {
+        legend: { labels: { color: '#8b90a0', font: { family: 'Noto Sans KR' } } }
+      },
+      scales: {
+        x: { ticks: { color: '#8b90a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: {
+          ticks: { color: '#8b90a0', callback: v => fmtShort(v) },
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        }
+      }
+    }
+  });
+
+  // 요약 카드
+  const milestones = [1, 3, 5, 10, 20, 30].filter(y => y <= investYears);
+  const summaryEl = document.getElementById('invest-summary');
+  if (data.investments.length === 0) {
+    summaryEl.innerHTML = '';
+    return;
+  }
+  summaryEl.innerHTML = milestones.map(y => {
+    const totalFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, y), 0);
+    const totalPaid = data.investments.reduce((s, inv) => s + inv.monthly * 12 * y, 0);
+    return `
+      <div class="invest-summary-card">
+        <div class="year-label">${y}년 후</div>
+        <div class="year-value">${fmt(totalFV)}</div>
+        <div class="year-profit">수익 +${fmt(totalFV - totalPaid)}</div>
+      </div>`;
+  }).join('');
 }
 
 render();
