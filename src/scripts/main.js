@@ -397,24 +397,6 @@ function renderInvestChart() {
     }
   });
 
-  // 요약 카드
-  const milestones = [1, 3, 5, 10, 20, 30].filter(y => y <= investYears);
-  const summaryEl = document.getElementById('invest-summary');
-  summaryEl.innerHTML = milestones.map(y => {
-    const savings = monthlySavings > 0 ? monthlySavings * 12 * y : 0;
-    const investFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, y), 0);
-    const debtGrowth = data.liabilities.reduce((s, l) => {
-      const monthlyInt = l.rate ? l.total * (l.rate / 100) / 12 : 0;
-      return s + Math.max(0, monthlyInt - l.monthly) * 12 * y;
-    }, 0);
-    const total = netWorth + savings + investFV - debtGrowth;
-    return `
-      <div class="invest-summary-card">
-        <div class="year-label">${y}년 후</div>
-        <div class="year-value">${fmt(total)}</div>
-        <div class="year-profit">현재 대비 +${fmt(total - netWorth)}</div>
-      </div>`;
-  }).join('');
 }
 
 render();
