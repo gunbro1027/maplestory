@@ -212,8 +212,16 @@ function render() {
   document.getElementById('sum-payment').textContent = fmt(monthlyPayment);
   document.getElementById('sum-interest').textContent = fmt(monthlyInterest);
   document.getElementById('sum-savings').textContent = fmt(monthlySavings > 0 ? monthlySavings : 0);
-  document.getElementById('sum-1year').textContent = fmt(netWorth + (monthlySavings > 0 ? monthlySavings * 12 : 0));
-  document.getElementById('sum-3year').textContent = fmt(netWorth + (monthlySavings > 0 ? monthlySavings * 36 : 0));
+  function projectedAsset(years) {
+    const savings = monthlySavings > 0 ? monthlySavings * 12 * years : 0;
+    const investFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, years), 0);
+    return netWorth + savings + investFV;
+  }
+  document.getElementById('sum-1year').textContent = fmt(projectedAsset(1));
+  document.getElementById('sum-3year').textContent = fmt(projectedAsset(3));
+  document.getElementById('sum-5year').textContent = fmt(projectedAsset(5));
+  document.getElementById('sum-7year').textContent = fmt(projectedAsset(7));
+  document.getElementById('sum-10year').textContent = fmt(projectedAsset(10));
 
   // 투자 목록
   const investList = document.getElementById('invest-list');
@@ -316,25 +324,43 @@ function fmtShort(v) {
 }
 
 function renderInvestChart() {
-  const colors = ['#6366f1','#4ade80','#60a5fa','#fb923c','#f472b6','#a78bfa'];
+  const { netWorth, monthlySavings } = calcTotals();
   const labels = ['현재'];
   for (let i = 1; i <= investYears; i++) labels.push(`${i}년`);
 
-  const datasets = data.investments.map((inv, idx) => {
-    const d = [0];
-    for (let i = 1; i <= investYears; i++) {
-      d.push(calcInvestFV(inv.monthly, inv.rate, i));
-    }
-    return {
-      label: inv.name,
-      data: d,
-      borderColor: colors[idx % colors.length],
-      backgroundColor: colors[idx % colors.length] + '22',
+  // 저축만 (투자 없이)
+  const savingsOnly = [netWorth];
+  // 저축 + 투자 합산
+  const totalWithInvest = [netWorth];
+
+  for (let i = 1; i <= investYears; i++) {
+    const savings = monthlySavings > 0 ? monthlySavings * 12 * i : 0;
+    const investFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, i), 0);
+    savingsOnly.push(netWorth + savings);
+    totalWithInvest.push(netWorth + savings + investFV);
+  }
+
+  const datasets = [
+    {
+      label: '저축만',
+      data: savingsOnly,
+      borderColor: '#60a5fa',
+      backgroundColor: 'rgba(96,165,250,0.08)',
       fill: true,
       tension: 0.4,
       pointRadius: 3,
-    };
-  });
+      borderDash: [5, 4],
+    },
+    {
+      label: '저축 + 투자',
+      data: totalWithInvest,
+      borderColor: '#4ade80',
+      backgroundColor: 'rgba(74,222,128,0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+    }
+  ];
 
   if (investChart) investChart.destroy();
   const ctx = document.getElementById('invest-chart').getContext('2d');
@@ -358,18 +384,15 @@ function renderInvestChart() {
   // 요약 카드
   const milestones = [1, 3, 5, 10, 20, 30].filter(y => y <= investYears);
   const summaryEl = document.getElementById('invest-summary');
-  if (data.investments.length === 0) {
-    summaryEl.innerHTML = '';
-    return;
-  }
   summaryEl.innerHTML = milestones.map(y => {
-    const totalFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, y), 0);
-    const totalPaid = data.investments.reduce((s, inv) => s + inv.monthly * 12 * y, 0);
+    const savings = monthlySavings > 0 ? monthlySavings * 12 * y : 0;
+    const investFV = data.investments.reduce((s, inv) => s + calcInvestFV(inv.monthly, inv.rate, y), 0);
+    const total = netWorth + savings + investFV;
     return `
       <div class="invest-summary-card">
         <div class="year-label">${y}년 후</div>
-        <div class="year-value">${fmt(totalFV)}</div>
-        <div class="year-profit">수익 +${fmt(totalFV - totalPaid)}</div>
+        <div class="year-value">${fmt(total)}</div>
+        <div class="year-profit">현재 대비 +${fmt(total - netWorth)}</div>
       </div>`;
   }).join('');
 }
