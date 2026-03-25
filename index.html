@@ -86,7 +86,7 @@
           <input type="text" id="liability-name" placeholder="부채명 (예: 주택담보대출)" />
           <input type="text" id="liability-total" placeholder="총 부채액 (예: 50,000,000)" oninput="formatInput(this)" />
           <input type="text" id="liability-monthly" placeholder="월 상환액 (예: 500,000)" oninput="formatInput(this)" />
-          <input type="number" id="liability-rate" placeholder="연 이자율 (%)" step="0.1" min="0" max="100" style="max-width:140px" />
+          <input type="number" id="liability-rate" placeholder="연 이자율 (%)" step="0.1" min="0" max="100" class="input-narrow" />
           <button class="btn danger" onclick="addLiability()">추가</button>
         </div>
         <div id="liability-list" class="item-list"></div>
@@ -105,7 +105,7 @@
             <option value="4">채권 (연 ~4%)</option>
             <option value="2">예적금 (연 ~2%)</option>
           </select>
-          <input type="number" id="invest-rate" placeholder="연 수익률 (%)" step="0.1" min="0" style="max-width:150px" />
+          <input type="number" id="invest-rate" placeholder="연 수익률 (%)" step="0.1" min="0" class="input-narrow" />
           <input type="text" id="invest-monthly" placeholder="월 투자금액" oninput="formatInput(this)" />
           <button class="btn primary" onclick="addInvestment()">추가</button>
         </div>

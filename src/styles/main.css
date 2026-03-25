@@ -172,6 +172,8 @@ input:focus, select:focus {
   border-color: var(--accent);
 }
 
+.input-narrow { max-width: 150px; }
+
 input::placeholder {
   color: var(--muted);
 }
@@ -387,5 +389,8 @@ select option {
     flex-direction: column;
   }
 
-  input, select { min-width: unset; }
+  input, select { min-width: unset; width: 100%; }
+
+  input[style*="max-width"] { max-width: 100% !important; }
+  .input-narrow { max-width: 100% !important; }
 }
