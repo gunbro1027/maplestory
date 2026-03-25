@@ -135,7 +135,6 @@ function calcTotals() {
 }
 
 // --- 렌더링 ---
-let categoryChart = null;
 let growthChart = null;
 let investChart = null;
 
@@ -267,36 +266,6 @@ function render() {
 }
 
 function renderCharts(netWorth, monthlySavings) {
-  // 카테고리 차트
-  const categories = {};
-  data.assets.forEach(a => {
-    categories[a.category] = (categories[a.category] || 0) + a.amount;
-  });
-
-  const catLabels = Object.keys(categories);
-  const catData = Object.values(categories);
-  const catColors = ['#6366f1','#4ade80','#60a5fa','#fb923c','#f472b6'];
-
-  if (categoryChart) categoryChart.destroy();
-  const catCtx = document.getElementById('category-chart').getContext('2d');
-  categoryChart = new Chart(catCtx, {
-    type: 'doughnut',
-    data: {
-      labels: catLabels.length ? catLabels : ['자산 없음'],
-      datasets: [{
-        data: catData.length ? catData : [1],
-        backgroundColor: catColors,
-        borderWidth: 0,
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { labels: { color: '#8b90a0', font: { family: 'Noto Sans KR' } } }
-      },
-      cutout: '65%',
-    }
-  });
-
   // 순자산 성장 예측 (연도별, 10년)
   const years = ['현재'];
   const growthData = [netWorth];
