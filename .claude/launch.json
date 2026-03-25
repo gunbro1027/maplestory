@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Static Server",
+      "runtimeExecutable": "C:\\Program Files\\Git\\usr\\bin\\perl.exe",
+      "runtimeArgs": ["C:\\Users\\COMMU\\Desktop\\codex\\.claude\\worktrees\\naughty-curie\\serve.pl"],
+      "port": 5173,
+      "autoPort": true
+    }
+  ]
+}
