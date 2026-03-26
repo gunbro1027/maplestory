@@ -7,9 +7,11 @@ document.getElementById('char-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchCharacter();
 });
 
-async function searchCharacter() {
+function searchCharacter() {
   const name = document.getElementById('char-input').value.trim();
   if (!name) return;
-  sessionStorage.setItem('charName', name);
+  try {
+    sessionStorage.setItem('charName', name);
+  } catch(e) {}
   window.location.href = 'character.html';
 }
