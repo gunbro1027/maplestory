@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>캐릭터 정보 - 건브로</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles/maple.css" />
+    <link rel="stylesheet" href="./src/styles/character.css" />
+    <script type="text/javascript" src="https://openapi.nexon.com/js/analytics.js?app_id=259693" async></script>
+  </head>
+  <body>
+    <div class="bg-glow"></div>
+
+    <header class="site-header">
+      <div class="container">
+        <a href="index.html" class="logo">건브로</a>
+        <span class="logo-sub">메이플스토리 캐릭터 조회</span>
+      </div>
+    </header>
+
+    <main class="container" id="main-content">
+      <div class="loading-screen" id="loading-screen">
+        <div class="loading-spinner"></div>
+        <p>캐릭터 정보를 불러오는 중...</p>
+      </div>
+    </main>
+
+    <script src="./src/scripts/character.js"></script>
+  </body>
+</html>
