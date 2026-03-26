@@ -148,12 +148,19 @@ async function loadCharacter() {
     if (!ocidRes.ok) throw new Error(ocidRes.status === 404 ? '캐릭터를 찾을 수 없습니다.' : '오류가 발생했습니다.');
     const { ocid } = await ocidRes.json();
 
+    const yesterday = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return d.toISOString().slice(0, 10);
+    })();
+    const q = `ocid=${ocid}&date=${yesterday}`;
+
     const [basicRes, statRes, hyperRes, propRes, abilityRes] = await Promise.all([
-      fetch(`${BASE_URL}/character/basic?ocid=${ocid}`, { headers }),
-      fetch(`${BASE_URL}/character/stat?ocid=${ocid}`, { headers }),
-      fetch(`${BASE_URL}/character/hyper-stat?ocid=${ocid}`, { headers }),
-      fetch(`${BASE_URL}/character/propensity?ocid=${ocid}`, { headers }),
-      fetch(`${BASE_URL}/character/ability?ocid=${ocid}`, { headers }),
+      fetch(`${BASE_URL}/character/basic?${q}`, { headers }),
+      fetch(`${BASE_URL}/character/stat?${q}`, { headers }),
+      fetch(`${BASE_URL}/character/hyper-stat?${q}`, { headers }),
+      fetch(`${BASE_URL}/character/propensity?${q}`, { headers }),
+      fetch(`${BASE_URL}/character/ability?${q}`, { headers }),
     ]);
 
     if (!basicRes.ok) throw new Error('캐릭터 기본 정보를 불러올 수 없습니다.');
