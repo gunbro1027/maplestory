@@ -6,7 +6,7 @@ const headers = { 'x-nxopen-api-key': API_KEY };
 function getYesterday() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10).replace(/-/g, '');
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
 // ── 검색 ──────────────────────────────────────
